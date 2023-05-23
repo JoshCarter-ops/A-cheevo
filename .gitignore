@@ -139,3 +139,4 @@ output.json
 runtime.log
 assets/games/game_list.json
 assets/images/achievement_icon.jpg
+sidebar.py

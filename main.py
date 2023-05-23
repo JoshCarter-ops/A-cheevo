@@ -1,3 +1,4 @@
+import json
 from tkinter import *
 from PIL import Image, ImageTk
 from tkinter import ttk
@@ -29,8 +30,8 @@ app_img = resource_path("assets\\images\\award.ico")
 latest_img = resource_path("assets\\images\\achievement_icon.jpg")
 broken_img = resource_path("assets\\images\\broken.jpg")
 config_file = resource_path("assets\\config\\steam.json")
+data_file = resource_path("output.json")
 display_open = None
-datag = None
 
 log = logging.getLogger("main.py")
 
@@ -118,7 +119,6 @@ class Settings(ctk.CTkToplevel):
         }
 
         self.steam.configure_creds(data)
-
         self.steam.clear_images(colour_dir)
         self.steam.clear_images(grey_dir)
 
@@ -135,7 +135,7 @@ class DisplayWindow(ctk.CTkToplevel):
         self.main_win = master
         self.protocol("WM_DELETE_WINDOW", self.done)
 
-        self.resizable(width=0, height=0)
+        # self.resizable(width=0, height=0)
         self.focus()
 
         v = ctk.IntVar()
@@ -240,20 +240,23 @@ class DisplayWindow(ctk.CTkToplevel):
 
     def refresh(self):
         log.info("(Display Window) refresh method called!")
-        data = datag
 
-        self.game_name.configure(text=f"Game: {data['gamename']}")
-        self.earned_count.configure(
-            text=f"{data['latest']['num_earned']}/{data['total']}"
-        )
-        self.achievement_latest.configure(text=f"{data['latest']['latest']['name']}")
+        with open(data_file, "r+") as openfile:
+            data = json.load(openfile)
+            self.game_name.configure(text=f"Game: {data['gamename']}")
+            self.earned_count.configure(
+                text=f"{data['latest']['num_earned']}/{data['total']}"
+            )
+            self.achievement_latest.configure(
+                text=f"{data['latest']['latest']['name']}"
+            )
 
-        update = ctk.CTkImage(
-            Image.open(latest_img).resize((112, 112), Image.LANCZOS),
-            size=(112, 112),
-        )
-        self.img_display.configure(image=update)
-        self.img_display.image = update
+            update = ctk.CTkImage(
+                Image.open(latest_img).resize((112, 112), Image.LANCZOS),
+                size=(112, 112),
+            )
+            self.img_display.configure(image=update)
+            self.img_display.image = update
 
         self.update()
         self.after(30000, self.refresh)
@@ -580,6 +583,7 @@ class Main:
 
     def checkbox_event(self):
         log.info("Checkbox toggled, current value: {}".format(self.check_var.get()))
+        self.master.update()
 
     def col_sort(self, treeview_name, column, reverse: bool):
         # epoch
@@ -670,14 +674,12 @@ class Main:
         self.master.config(cursor="clock")
         self.master.update()
 
-        global datag
         position = 0
         log.info("Data Refreshing!")
 
         # CALL STEAM MODULE
         steam = Steam()
         data = steam.combine()
-        datag = data
 
         # LOG WINDOW REFRESH
         self.log_game_label.configure(text=f"Game: {data['gamename']}")
@@ -777,7 +779,7 @@ class Main:
 
     def fill_games_list(self):
         self.photo_images_games_cache.clear()
-        print("CLEARED")
+        log.info("Games List has been cleared")
         self.game_tree.delete(*self.game_tree.get_children())
         data = Steam().get_games_list()
         position = 0

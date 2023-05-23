@@ -35,8 +35,8 @@ col_images_cache = []
 gry_images_cache = []
 
 logging.basicConfig(
-    filename=resource_path("runtime.log"),
-    filemode="w",
+    # filename=resource_path("runtime.log"),
+    # filemode="w",
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%d-%b-%y %H:%M:%S",
